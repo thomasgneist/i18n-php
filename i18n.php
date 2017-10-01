@@ -1,27 +1,14 @@
 <?php
 /**
- * i18n PHP class
+ * i18n - PHP internationalization class.
  *
- * i18n is a class that lets you make your website bilingual. You need a
- * proper MySQL database and a website that is able to run PHP code, and
- * you're ready to go. Connect to the database using connect() and get
- * a message using msg().
- *
- * Example usage:
- *
- * require_once 'path/to/i18n.php';
- * $i18n = new i18n();
- * $i18n->Database = 'DATABASE';
- * $i18n->Username = 'USER';
- * $i18n->Password = 'PASSWORD';
- * $i18n->msg('hello_world');
+ * @see https://github.com/thomasgneist/i18n-php GitHub project
  *
  * @author Thomas Gneist <contact@thomasgneist.com>
- * @version 1.0
- * @access public
- * @see https://www.thomasgneist.com
- *
  * @copyright 2017 Thomas Gneist
+ * @License MIT License
+ *
+ * @version 1.0
  */
 
 class i18n
@@ -33,7 +20,7 @@ class i18n
     public $Host = 'localhost';
 
     /**
-     * MySQL database
+     * MySQL database.
      * @var string
      */
     public $Database = '';
@@ -54,13 +41,7 @@ class i18n
      * Fallback language.
      * @var string
      */
-    public $Fallback = 'DE';
-
-    /**
-     * Enable or disable error logging.
-     * @var bool
-     */
-    private $ErrorLog = true;
+    public $Fallback = 'EN';
 
     /**
      * Webmaster email address.
@@ -68,44 +49,54 @@ class i18n
      */
     public $Webmaster = '';
 
+    /**
+     * Enable or disable error logging.
+     * @var bool
+     */
+    protected $ErrorLog = true;
+
+    /**
+     * Enable or disable the fallback language.
+     * @var bool
+     */
+    protected $NoFallback = false;
+
 
     /**
      * Connect to the MySQL database with PDO
-     *
-     * connect() is a function to connect to the MySQL database using PDO.
-     * If a variable isn't set the function returns to the default global
-     * mysql_ variables.
-     *
      * @since 1.0 Sept 28th, 2017
      *
-     * @see i18n::$Host
-     * @see i18n::$Database
-     * @see i18n::$Username
-     * @see i18n::$Password
      * @return PDO
      */
     private function connect()
     {
         try {
+            // Connect to the MySQL database.
             $pdo = new PDO('mysql:host='.$this->Host.';dbname='.$this->Database, $this->Username, $this->Password);
         } catch (PDOException $e) {
             $this->error($e);
+        }
+
+        if(!isset($pdo)) {
+            $pdo = NULL;
         }
 
         return $pdo;
     }
 
     /**
-     * Log a message.
+     * Log an error.
      * @since 1.0 Sept 28th, 2017
      * @param string $message
      */
     private function error($message)
     {
         if($this->ErrorLog) {
+            // Log the error in your log file.
             $message = str_replace(array("\r", "\n"), "", $message);
             error_log($message, 0);
 
+            // Send and email to the webmaster.
             if(!empty($this->Webmaster)) {
                 error_log($message, 1, $this->Webmaster);
             }
@@ -127,45 +118,76 @@ class i18n
     }
 
     /**
+     * Enable or disable fallback language.
+     * @since 1.0 Oct 1st, 2017
+     * @param bool $value
+     */
+    public function NoFallback($value = false)
+    {
+        if($value) {
+            $this->NoFallback = true;
+        } else {
+            $this->NoFallback = false;
+        }
+    }
+
+    /**
      * Get and return the selected language
-     *
-     * getCurrentLanguage() uses the server name to get the current
-     * language selected by the user.
-     *
-     * @since 1.0 Sept 28th, 2017
-     *
+     * @since 1.0 Oct 1st, 2017
      * @return string
      */
-    public function getCurrentLanguage()
+    public function getLanguage()
     {
-        $lang = strtoupper(explode(".", $_SERVER['SERVER_NAME'])[0]);
-        if($lang == 'WWW' || $lang == 'DEV' ) { $lang = 'DE'; }
+        // Check if a GET parameter named 'lang' exists
+        if(isset($_GET['lang']) && is_string($_GET['lang'])) {
+            $lang = strtoupper($_GET['lang']);
+            // Check if a SESSION parameter named 'lang' exists
+        } else if(isset($_SERVER['lang']) && is_string($_SESSION['lang'])) {
+            $lang = strtoupper($_SESSION['lang']);
+            // Get the language from the domain (e.g. de.example.com or fr.example.com)
+        } else {
+            $lang = strtoupper(explode('.', $_SERVER['SERVER_NAME'])[0]);
+        }
+
+        // Return the fallback language if nothing worked
+        if($lang == 'WWW' || $lang == 'DEV') {
+            $lang = $this->Fallback;
+        }
+
         return $lang;
     }
 
     /**
-     * Get a message from the database
+     * Get and return fallback language.
+     * @since 1.0 Oct 1st, 2017
+     * @return string
+     */
+    public function getFallbackLanguage()
+    {
+        return $this->Fallback;
+    }
+
+    /**
+     * Get and return a message from the database
      *
      * msg() returns the selected message in the right language. To
-     * do so, it connects to the database via connect() and selects the right
+     * do so it connects to the database via connect() and selects the right
      * table using getCurrentLanguage(). Then it selects the correct row using
      * the given key and returns the message. If no message was found, the
-     * function returns the message in the default language or writes
+     * function returns the message in the fallback language or writes
      * "Oops! Something went wrong."
      *
      * @since 1.0 Sept 28th, 2017
-     *
-     * @see i18n::connect()
-     * @see i18n::getCurrentLanguage()
      *
      * @param $id
      * @return string
      */
     public function msg($id)
     {
-        $table = 'lang_'.$this->getCurrentLanguage();
+        $table = 'lang_'.$this->getLanguage();
         $pdo = $this->connect();
 
+        // Connect to the MySQL database and get the requested message.
         try {
             $stmt = $pdo->prepare("SELECT `message` FROM `".$table."` WHERE `id` = '".$id."' LIMIT 1");
             $stmt->execute();
@@ -174,17 +196,18 @@ class i18n
             $this->error($e);
         }
 
-        if(empty($message)) {
+        // Connect to the MySQL database and get the requested message from the fallback table.
+        if(empty($message) && !$this->NoFallback) {
             try {
                 $stmt = $pdo->prepare("SELECT `message` FROM `lang_".$this->Fallback."` WHERE `id` = '".$id."' LIMIT 1");
                 $stmt->execute();
                 $message = $stmt->fetchColumn();
-            }
-            catch (PDOException $e) {
+            } catch (PDOException $e) {
                 $this->error($e);
             }
         }
 
+        // Set message to "Oops! Something went wrong." if message was empty.
         if(empty($message)) {
             $message = 'Oops! Something went wrong.';
         }
