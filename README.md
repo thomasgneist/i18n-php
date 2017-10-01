@@ -36,7 +36,7 @@ _id_ and _message_.
  $i18n->Host = 'example.com';                    # Default: 'localhost'
  $i18n->Fallback = 'DE';                         # Default: 'EN'
  $i18n->NoFallback(true);                        # Default: 'false' (Disable fallback language)
- $i18n->ErrorLog(true);
+ $i18n->ErrorLog(false);                         # Default: 'true' (Disable error logging)
  $i18n->Webmaster = 'webmaster@example.com';
 ?>
 ```
@@ -63,4 +63,4 @@ If no message was found it then returns the message in the fallback language. To
 language, use `$i18n->NoFallback(true);`.
 
 ## License
-This project is licensed under the MIT License. Visit [LICENSE.txt](/LICENSE.txt) for more information.
+This project is licensed under the MIT License. View [LICENSE.txt](/LICENSE.txt) for more information.
