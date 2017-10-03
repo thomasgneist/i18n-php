@@ -11,6 +11,7 @@
  * @version 1.0
  */
 
+/** Class i18n */
 class i18n
 {
     /**
