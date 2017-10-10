@@ -8,7 +8,7 @@
  * @copyright 2017 Thomas Gneist
  * @License MIT License
  *
- * @version v1.1
+ * @version v1.2
  */
 
 class i18n
@@ -16,38 +16,49 @@ class i18n
     /**
      * MySQL host.
      * @var string
+     * @since v1.0 Sept 28th, 2017
+     * @deprecated v1.2 Oct 10th, 2017
      */
-    public $Host = 'localhost';
+    public $Host = '';
 
     /**
      * MySQL database.
      * @var string
+     *
+     * @since v1.0 Sept 28th, 2017
+     * @deprecated v1.2 Oct 10th, 2017
      */
     public $Database = '';
 
     /**
      * MySQL user.
      * @var string
+     *
+     * @since v1.0 Sept 28th, 2017
+     * @deprecated v1.2 Oct 10th, 2017
      */
     public $Username = '';
 
     /**
      * MySQL password.
      * @var string
+     *
+     * @since v1.0 Sept 28th, 2017
+     * @deprecated v1.2 Oct 10th, 2017
      */
     public $Password = '';
-
-    /**
-     * Fallback language.
-     * @var string
-     */
-    public $Fallback = 'EN';
 
     /**
      * Webmaster email address.
      * @var string
      */
     public $Webmaster = '';
+
+    /**
+     * Fallback language.
+     * @var string
+     */
+    public $Fallback = 'EN';
 
     /**
      * Enable or disable error logging.
@@ -61,9 +72,35 @@ class i18n
      */
     protected $NoFallback = false;
 
+    /** PDO for MySQL connection.
+     * @var PDO
+     */
+    protected $PDO = '';
+
+    /**
+     * i18n constructor.
+     * @since v1.2 Oct 10th,2017
+     *
+     * @param $username
+     * @param $password
+     * @param $database
+     * @param string $host
+     */
+    function __construct($username, $password, $database, $host = 'localhost')
+    {
+        try {
+            $this->PDO = new PDO('mysql:host=' . $host . ';dbname=' . $database, $username, $password);
+            echo '<script>console.log("i18n-php: Ready!")</script>';
+        } catch (PDOException $exception) {
+            $this->error($exception);
+            die("<p><b>i18n-php</b>: An error occurred!<br>Unable to connect to the database.<br><i>Error occurred on construct</i>.</p><p>".$exception."</p><hr><p>Visit <a href=https://github.com/thomasgneist/i18n-php' target='_blank' rel='noopener'>https://github.com/thomasgneist/i18n-php</a> to report an error if the problem was caused by <i>i18n-php</i>.</p>");
+        }
+    }
+
     /**
      * Connect to the MySQL database with PDO
      * @since v1.0 Sept 28th, 2017
+     * @deprecated v1.2 Oct 10th, 2017
      *
      * @return PDO
      */
@@ -74,12 +111,8 @@ class i18n
             $pdo = new PDO('mysql:host='.$this->Host.';dbname='.$this->Database, $this->Username, $this->Password);
         } catch (PDOException $e) {
             $this->error($e);
+            $pdo = null;
         }
-
-        if(!isset($pdo)) {
-            $pdo = NULL;
-        }
-
         return $pdo;
     }
 
@@ -163,7 +196,10 @@ class i18n
      */
     public function getFallbackLanguage()
     {
-        return $this->Fallback;
+        if($this->Fallback) {
+            return $this->Fallback;
+        }
+        return null;
     }
 
     /**
@@ -178,9 +214,6 @@ class i18n
      *
      * @since v1.0 Sept 28th, 2017
      *
-     * CHANGELOG:
-     * - Oct 10th, 2017: Added $replace
-     *
      * @param string $id
      * @param array $replace
      * @return string
@@ -188,7 +221,7 @@ class i18n
     public function msg($id, $replace = array())
     {
         $table = 'lang_'.$this->getLanguage();
-        $pdo = $this->connect();
+        $pdo = $this->PDO;
 
         // Connect to the MySQL database and get the requested message.
         try {
