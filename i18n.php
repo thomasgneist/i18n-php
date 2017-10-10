@@ -8,10 +8,9 @@
  * @copyright 2017 Thomas Gneist
  * @License MIT License
  *
- * @version 1.0
+ * @version v1.1
  */
 
-/** Class i18n */
 class i18n
 {
     /**
@@ -62,10 +61,9 @@ class i18n
      */
     protected $NoFallback = false;
 
-
     /**
      * Connect to the MySQL database with PDO
-     * @since 1.0 Sept 28th, 2017
+     * @since v1.0 Sept 28th, 2017
      *
      * @return PDO
      */
@@ -87,7 +85,7 @@ class i18n
 
     /**
      * Log an error.
-     * @since 1.0 Sept 28th, 2017
+     * @since v1.0 Sept 28th, 2017
      * @param string $message
      */
     private function error($message)
@@ -106,7 +104,7 @@ class i18n
 
     /**
      * Enable error logging.
-     * @since 1.0 Sept 30th, 2017
+     * @since v1.0 Sept 30th, 2017
      * @param bool $enable
      */
     public function ErrorLog($enable = true)
@@ -120,7 +118,7 @@ class i18n
 
     /**
      * Enable or disable fallback language.
-     * @since 1.0 Oct 1st, 2017
+     * @since v1.0 Oct 1st, 2017
      * @param bool $value
      */
     public function NoFallback($value = false)
@@ -134,7 +132,7 @@ class i18n
 
     /**
      * Get and return the selected language
-     * @since 1.0 Oct 1st, 2017
+     * @since v1.0 Oct 1st, 2017
      * @return string
      */
     public function getLanguage()
@@ -160,7 +158,7 @@ class i18n
 
     /**
      * Get and return fallback language.
-     * @since 1.0 Oct 1st, 2017
+     * @since v1.0 Oct 1st, 2017
      * @return string
      */
     public function getFallbackLanguage()
@@ -178,12 +176,16 @@ class i18n
      * function returns the message in the fallback language or writes
      * "Oops! Something went wrong."
      *
-     * @since 1.0 Sept 28th, 2017
+     * @since v1.0 Sept 28th, 2017
      *
-     * @param $id
+     * CHANGELOG:
+     * - Oct 10th, 2017: Added $replace
+     *
+     * @param string $id
+     * @param array $replace
      * @return string
      */
-    public function msg($id)
+    public function msg($id, $replace = array())
     {
         $table = 'lang_'.$this->getLanguage();
         $pdo = $this->connect();
@@ -213,6 +215,10 @@ class i18n
             $message = 'Oops! Something went wrong.';
         }
 
+        // Replace %s with something other if $replace is a valid array.
+        if(!empty($replace)) {
+            $message = vsprintf($message, $replace);
+        }
         return $message;
     }
 }

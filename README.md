@@ -51,6 +51,21 @@ message. E.g.:
 ?>
 ```
 
+### Replace a placeholder (%s) with something else
+You can set %s as a placeholder for something else. To replace %s, simply add an array to msg():
+
+```php
+<?php
+ /* Let's assume that 'hello' returns 'Hello %s, nice to meet you! My name is %s.'
+  * msg() replaces every %s with a value set in the array in a linear order.
+  * 
+  * This usage outputs 'Hello Tom, nice to meet you! My name is Sarah.'. To switch the names you 
+  * need to change the order in the array.
+  */
+ echo $i18n->msg('hello', array('Tom', 'Sarah'));
+?>
+```
+
 ### Language detection
 The following parameters tell the class in which language the message should be returned:
 1. `$_GET['lang']`
