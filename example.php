@@ -10,13 +10,14 @@ $i18n = new i18n('USERNAME', 'PASSWORD', 'DATABASE', 'HOST (OPTIONAL)');
  * Now you are ready to go! But you can still change some settings if you want to.
  * The following settings are available:
  *
- * - $i18n->Fallback = 'DE';                            Set another fallback language. Default: EN.
- * - $i18n->NoFallback(true);                           Disable the usage of a fallback language at all. Default: false.
- * - $i18n->ErrorLog(false);                            Disable error logging. Default: true.
- * - $i18n->Webmaster = 'webmaster@example.com';        Set a webmaster email address for error logging.
+ * - $i18n->enableFallbackLanguage(true);               Enable or disable the usage of the fallback language. Default: true
+ * - $i18n->setLangDetectionType('session');            Set the language detection type. Available: cookie, domain, fallback, session. Default: cookie
+ * - $i18n->setDatabaseTable('web_messages');           Set the table's name in the MySQL database. Default: messages
+ * - $i18n->setFallbackLanguage('de');                  Set the fallback language. Default: en
  */
-$i18n->Fallback = 'DE';
-$i18n->Webmaster = 'webmaster@example.com';
+$i18n->setLangDetectionType('session');
+$i18n->setDatabaseTable('web_messages');
+$i18n->setFallbackLanguage('de');
 
 /*
  * Alright, everything set up!
@@ -28,7 +29,7 @@ echo $i18n->getFallbackLanguage();                     // Language set with $i18
 /*
  * Time for some messages!
  * Use $i18n->msg('ID') to get a message from the database.
- * If you have one or more placeholder named %s in your string, create an array as the second value and insert the
+ * If you have one or more placeholder (%s) in your string, create an array as the second value and insert the
  * strings you want to replace the placeholder with. But be careful, the order is important!
  */
 echo $i18n->msg('hello_world');                    // Outputs 'Hello world.' in our example.
